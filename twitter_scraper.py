@@ -10,8 +10,6 @@ import pandas as pd
 import os
 import time
 
-src_file_path = r'c:\Users\jaromir\OneDrive\UoM\100_Disertation\02_SrcData'
-
 def to_dataframe(tweets):
     """Coverts Tweet object to Pandas DataFrame. 
         
@@ -45,8 +43,8 @@ def to_dataframe(tweets):
 
 def to_csv(df, path, file_name):
     """ Saves dataframe as csv."""
-    if os.path.exists('path') == True:
-        if os.path.isfile(path+ "\\" +file_name+".csv") == True:
+    if os.path.exists(path) == True:
+        if os.path.isfile(path+ "\\" +file_name+".csv") == False:
             df.to_csv(path+ "\\" +file_name+".csv")
             print("File saved succesfully to:" + path)
             return
@@ -61,36 +59,55 @@ def to_csv(df, path, file_name):
                 return
     else:
         print("File not saved.")
+        
+def retrieve_tweets(search_query, start_date, end_date, path, max_limit):
+    """ Dowload tweets and saves them to a csv file"""
     
+    # search criteria
+    tweetCriteria = got.manager.TweetCriteria().setQuerySearch(search_query)\
+                                               .setSince(start_date)\
+                                               .setUntil(end_date)\
+                                               .setEmoji("unicode")\
+                                               .setMaxTweets(max_limit)
+    # get tweets
+    tweet = got.manager.TweetManager.getTweets(tweetCriteria)
+    
+    # store downloaded tweets into a dataframe
+    df = to_dataframe(tweet)
+    print(df.shape)
+    length = df.shape[0]
+    # save dataframe into a csv file
+    to_csv(df, path, search_query+"_"+start_date+"_"+end_date)
+    
+    del df
+    return length
 
-start = time.time()
-tweetCriteria = got.manager.TweetCriteria().setQuerySearch('#AAPL')\
-                                           .setSince("2015-05-01")\
-                                           .setUntil("2015-09-30")\
-                                           .setEmoji("unicode")\
-                                           .setMaxTweets(50)
-tweet = got.manager.TweetManager.getTweets(tweetCriteria)
-end = time.time()
-print(end-start)
+time_stats = pd.DataFrame(columns=['query','start_date','end_date','count','time'])
 
-# Get tweeets by user name
-tweetCriteria = got.manager.TweetCriteria().setUsername("barackobama whitehouse")\
-                                           .setMaxTweets(2)
-tweet = got.manager.TweetManager.getTweets(tweetCriteria)[0]
+trg_file_path = r'c:\Users\jaromir\OneDrive\UoM\100_Disertation\02_SrcData'
+start_date = "2019-03-19"
+end_date = "2020-06-19"
+tickers = ['#KO']
+max_limit = 10000
 
+for idx, ticker in enumerate(tickers):
+    start = time.time()
+    tweet_count = retrieve_tweets(ticker, start_date, end_date, trg_file_path, max_limit)
+    end = time.time()
+    total_time = end-start
 
-# Get twets and preserve emojis
-tweetCriteria = got.manager.TweetCriteria().setUsername("barackobama")\
-                                           .setSince("2015-09-10")\
-                                           .setUntil("2016-01-01")\
-                                           .setMaxTweets(1)\
-                                           .setEmoji("unicode")
-tweet = got.manager.TweetManager.getTweets(tweetCriteria)[0]
-print(tweet.text)
+#    stats = pd.DataFrame({'query':ticker,'start_date':start_date,'end_date':end_date,
+#                      'count': tweet_count, "time":total_time}, index=[idx+3])
 
+#    time_stats = time_stats.append(stats).reset_index()
 
-print(tweet.text)
-
-
-
-%%time
+#if __name__ == "__main__":
+#
+#end = time.time()
+#print(end-start)
+    
+# XOM - energy
+# TSLA - automotive
+# JPM - banking 
+# DIS - media
+# KO - food
