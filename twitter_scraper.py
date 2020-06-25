@@ -60,7 +60,8 @@ def to_csv(df, path, file_name):
     else:
         print("File not saved.")
         
-def retrieve_tweets(search_query, start_date, end_date, path, max_limit):
+def retrieve_tweets(search_query, start_date, end_date, path, max_limit, language,
+                    near):
     """ Dowload tweets and saves them to a csv file"""
     
     # search criteria
@@ -68,7 +69,9 @@ def retrieve_tweets(search_query, start_date, end_date, path, max_limit):
                                                .setSince(start_date)\
                                                .setUntil(end_date)\
                                                .setEmoji("unicode")\
-                                               .setMaxTweets(max_limit)
+                                               .setMaxTweets(max_limit)\
+                                               .setLang(language)\
+                                               .setNear(near)
     # get tweets
     tweet = got.manager.TweetManager.getTweets(tweetCriteria)
     
@@ -87,19 +90,23 @@ time_stats = pd.DataFrame(columns=['query','start_date','end_date','count','time
 trg_file_path = r'c:\Users\jaromir\OneDrive\UoM\100_Disertation\02_SrcData'
 start_date = "2019-03-19"
 end_date = "2020-06-19"
-tickers = ['#KO']
+language = 'en'
+near = '840'
+tickers = ['#KO', '#XOM','#TSLA','#JPM','#DIS']
 max_limit = 10000
 
 for idx, ticker in enumerate(tickers):
     start = time.time()
-    tweet_count = retrieve_tweets(ticker, start_date, end_date, trg_file_path, max_limit)
+    tweet_count = retrieve_tweets(ticker, start_date, end_date, trg_file_path, max_limit,
+                                  language, near)
     end = time.time()
     total_time = end-start
 
-#    stats = pd.DataFrame({'query':ticker,'start_date':start_date,'end_date':end_date,
-#                      'count': tweet_count, "time":total_time}, index=[idx+3])
+    stats = pd.DataFrame({'query':ticker,'start_date':start_date,'end_date':end_date,
+                      'count': tweet_count, "time":total_time}, index=[idx])
 
-#    time_stats = time_stats.append(stats).reset_index()
+#    time_stats = pd.concat([time_stats,stats], axis = 0 )
+    pd.concat([time_stats, stats], axis=0)
 
 #if __name__ == "__main__":
 #
@@ -111,3 +118,4 @@ for idx, ticker in enumerate(tickers):
 # JPM - banking 
 # DIS - media
 # KO - food
+    
