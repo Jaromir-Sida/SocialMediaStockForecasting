@@ -106,83 +106,31 @@ def create_bow(df_attribute):
 
 bow = create_bow('Word_Token_NS_L')
 
+# Vader sentiment
+
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+sid = SentimentIntensityAnalyzer()
+
+df_text.loc[:,'VADER'] = df_text.loc[:,'text'].apply(sid.polarity_scores)
+df_text.loc[:,'VADER_cmp'] = df_text.loc[:,'VADER'].apply(lambda x:x['compound'])
 
 
+def create_fdist(tick, df_attribute):
+    ticker_words = reduce(concat_lists, df_text[df_text.ticker == tick][df_attribute])
+    fdist = FreqDist(ticker_words)
+    return fdist
 
 # Print the 10 most common tokens
 print(bow.most_common(10))
 
+KO_fdist = create_fdist('KO','Word_casual_NS_L')
 
-FreqDist(df_text.iloc[1,3])
-
-
-
-
-
-
-
-
-
-# tokenization into sentences
-from nltk.tokenize import sent_tokenize
-print(sent_tokenize(df.iloc[0,:].text))
-
-# tokenization into words
-from nltk.tokenize import word_tokenize
-print(word_tokenize(df.iloc[0,:].text))
-
-# Frequency distribution
-from nltk.probability import FreqDist
-fdist = FreqDist(word_tokenize(df.iloc[0,:].text))
-
-print(FreqDist(word_tokenize(df.iloc[0,:].text)))
-print(fdist.most_common)
-
-# plot word distribution
-fdist.plot(30,cumulative=False)
+import matplotlib.pyplot as plt
+KO_fdist.plot(30,cumulative=False)
 plt.show()
 
-# stop words
-from nltk.corpus import stopwords
-import nltk
-nltk.download('stopwords')
-stop_words=set(stopwords.words("english"))
-print(stop_words)
 
-# Removing stop words
-
-filtered_sent=[]
-for w in word_tokenize(df.iloc[0,:].text):
-    if w not in stop_words:
-        filtered_sent.append(w)
-print("Tokenized Sentence:",word_tokenize(df.iloc[0,:].text))
-print("Filterd Sentence:",filtered_sent)
-
-
-# Stemming
-from nltk.stem import PorterStemmer
-
-ps = PorterStemmer()
-
-stemmed_words=[]
-for w in filtered_sent:
-    stemmed_words.append(ps.stem(w))
-
-print("Filtered Sentence:",filtered_sent)
-print("Stemmed Sentence:",stemmed_words)
-
-
-# Lemmatizaion
-
-from nltk.stem.wordnet import WordNetLemmatizer
-lem = WordNetLemmatizer()
-
-lemmatized_words=[]
-for w in filtered_sent:
-    lemmatized_words.append(lem.lemmatize(w,"v"))
-
-print("Filtered Sentence:",filtered_sent)
-print("Lemmatized Sentence:",lemmatized_words)
 
 # POS tagging
 nltk.download('averaged_perceptron_tagger')
